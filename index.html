@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAB Bayu Permana Putra - Firebase Cloud</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .status-bar {
+            background: #34495e;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e74c3c;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #27ae60;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .firebase-config {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .firebase-config.configured {
+            background: #d4edda;
+            border-color: #27ae60;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .summary-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .notification.info {
+            background: #3498db;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .config-input {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ RAB Bayu Permana Putra</h1>
+            <p>Rencana Anggaran Biaya dengan Firebase Cloud Storage</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator" id="firebaseStatus"></div>
+                <span id="firebaseStatusText">Firebase: Tidak Terhubung</span>
+            </div>
+            <div class="status-item">
+                <span id="lastSync">Terakhir Sync: Belum pernah</span>
+            </div>
+            <div class="status-item">
+                <button class="btn btn-warning" onclick="showFirebaseConfig()">⚙️ Konfigurasi Firebase</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Firebase Configuration Panel -->
+            <div id="firebaseConfigPanel" class="firebase-config" style="display: none;">
+                <h3>🔧 Konfigurasi Firebase</h3>
+                <p>Masukkan konfigurasi Firebase Anda di bawah ini:</p>
+                <div style="text-align: left; margin-top: 20px;">
+                    <input type="url" id="apiKey" class="config-input" placeholder="API Key" />
+                    <input type="text" id="authDomain" class="config-input" placeholder="Auth Domain (project-id.firebaseapp.com)" />
+                    <input type="text" id="projectId" class="config-input" placeholder="Project ID" />
+                    <input type="url" id="storageBucket" class="config-input" placeholder="Storage Bucket (project-id.appspot.com)" />
+                    <input type="text" id="messagingSenderId" class="config-input" placeholder="Messaging Sender ID" />
+                    <input type="text" id="appId" class="config-input" placeholder="App ID" />
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-success" onclick="initializeFirebase()">💾 Simpan & Hubungkan</button>
+                    <button class="btn btn-danger" onclick="hideFirebaseConfig()">❌ Batal</button>
+                </div>
+            </div>
+
+            <!-- Input Form -->
+            <div class="input-group">
+                <div class="form-group">
+                    <label for="uraianPekerjaan">Uraian Pekerjaan</label>
+                    <input type="text" id="uraianPekerjaan" placeholder="Contoh: Pekerjaan Galian Tanah">
+                </div>
+                <div class="form-group">
+                    <label for="satuan">Satuan</label>
+                    <select id="satuan">
+                        <option value="">Pilih Satuan</option>
+                        <option value="m³">m³ (Meter Kubik)</option>
+                        <option value="m²">m² (Meter Persegi)</option>
+                        <option value="m">m (Meter)</option>
+                        <option value="unit">Unit</option>
+                        <option value="kg">kg (Kilogram)</option>
+                        <option value="ton">Ton</option>
+                        <option value="ls">ls (Lump Sum)</option>
+                        <option value="buah">Buah</option>
+                        <option value="batang">Batang</option>
+                        <option value="lembar">Lembar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="volume">Volume</label>
+                    <input type="number" id="volume" placeholder="0" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="hargaSatuan">Harga Satuan (Rp)</label>
+                    <input type="number" id="hargaSatuan" placeholder="0" min="0">
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="tambahItem()">➕ Tambah Item</button>
+                <button class="btn btn-success" onclick="syncToFirebase()" id="syncBtn" disabled>☁️ Sync ke Cloud</button>
+                <button class="btn btn-warning" onclick="loadFromFirebase()" id="loadBtn" disabled>📥 Load dari Cloud</button>
+                <button class="btn btn-danger" onclick="clearAllData()">🗑️ Hapus Semua</button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3>Total Item</h3>
+                    <div class="value" id="totalItems">0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Subtotal</h3>
+                    <div class="value" id="subtotal">Rp 0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>PPN 11%</h3>
+                    <div class="value" id="ppn">Rp 0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Keseluruhan</h3>
+                    <div class="value" id="totalKeseluruhan">Rp 0</div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Uraian Pekerjaan</th>
+                            <th>Satuan</th>
+                            <th>Volume</th>
+                            <th>Harga Satuan (Rp)</th>
+                            <th>Jumlah Harga (Rp)</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rabTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div>
+                                    <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                                    <h3>Belum ada item pekerjaan</h3>
+                                    <p>Tambahkan item pekerjaan untuk mulai menghitung RAB</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+        // Global variables
+        let rabItems = [];
+        let db = null;
+        let firebaseApp = null;
+        let isFirebaseInitialized = false;
+
+        // Make functions globally available
+        window.tambahItem = tambahItem;
+        window.editItem = editItem;
+        window.hapusItem = hapusItem;
+        window.clearAllData = clearAllData;
+        window.syncToFirebase = syncToFirebase;
+        window.loadFromFirebase = loadFromFirebase;
+        window.showFirebaseConfig = showFirebaseConfig;
+        window.hideFirebaseConfig = hideFirebaseConfig;
+        window.initializeFirebase = initializeFirebase;
+
+        // Load saved data on page load
+        window.addEventListener('load', function() {
+            loadLocalData();
+            loadFirebaseConfig();
+        });
+
+        function loadLocalData() {
+            const savedData = localStorage.getItem('rabItems');
+            if (savedData) {
+                rabItems = JSON.parse(savedData);
+                updateTable();
+                updateSummary();
+            }
+        }
+
+        function saveLocalData() {
+            localStorage.setItem('rabItems', JSON.stringify(rabItems));
+        }
+
+        function loadFirebaseConfig() {
+            const savedConfig = localStorage.getItem('firebaseConfig');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                document.getElementById('apiKey').value = config.apiKey || '';
+                document.getElementById('authDomain').value = config.authDomain || '';
+                document.getElementById('projectId').value = config.projectId || '';
+                document.getElementById('storageBucket').value = config.storageBucket || '';
+                document.getElementById('messagingSenderId').value = config.messagingSenderId || '';
+                document.getElementById('appId').value = config.appId || '';
+                
+                // Auto initialize if config exists
+                if (config.apiKey && config.projectId) {
+                    initializeFirebaseWithConfig(config);
+                }
+            }
+        }
+
+        function showFirebaseConfig() {
+            document.getElementById('firebaseConfigPanel').style.display = 'block';
+        }
+
+        function hideFirebaseConfig() {
+            document.getElementById('firebaseConfigPanel').style.display = 'none';
+        }
+
+        function initializeFirebase() {
+            const config = {
+                apiKey: document.getElementById('apiKey').value.trim(),
+                authDomain: document.getElementById('authDomain').value.trim(),
+                projectId: document.getElementById('projectId').value.trim(),
+                storageBucket: document.getElementById('storageBucket').value.trim(),
+                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
+                appId: document.getElementById('appId').value.trim()
+            };
+
+            if (!config.apiKey || !config.projectId) {
+                showNotification('API Key dan Project ID wajib diisi!', 'error');
+                return;
+            }
+
+            // Save config to localStorage
+            localStorage.setItem('firebaseConfig', JSON.stringify(config));
+            
+            initializeFirebaseWithConfig(config);
+            hideFirebaseConfig();
+        }
+
+        function initializeFirebaseWithConfig(config) {
+            try {
+                firebaseApp = initializeApp(config);
+                db = getFirestore(firebaseApp);
+                isFirebaseInitialized = true;
+                
+                updateFirebaseStatus(true);
+                document.getElementById('syncBtn').disabled = false;
+                document.getElementById('loadBtn').disabled = false;
+                
+                showNotification('Firebase berhasil terhubung!', 'success');
+            } catch (error) {
+                console.error('Error initializing Firebase:', error);
+                updateFirebaseStatus(false);
+                showNotification('Gagal menghubungkan Firebase: ' + error.message, 'error');
+            }
+        }
+
+        function updateFirebaseStatus(connected) {
+            const indicator = document.getElementById('firebaseStatus');
+            const statusText = document.getElementById('firebaseStatusText');
+            
+            if (connected) {
+                indicator.classList.add('connected');
+                statusText.textContent = 'Firebase: Terhubung';
+            } else {
+                indicator.classList.remove('connected');
+                statusText.textContent = 'Firebase: Tidak Terhubung';
+            }
+        }
+
+        function tambahItem() {
+            const uraianPekerjaan = document.getElementById('uraianPekerjaan').value.trim();
+            const satuan = document.getElementById('satuan').value;
+            const volume = parseFloat(document.getElementById('volume').value) || 0;
+            const hargaSatuan = parseFloat(document.getElementById('hargaSatuan').value) || 0;
+
+            if (!uraianPekerjaan || !satuan || volume <= 0 || hargaSatuan <= 0) {
+                showNotification('Mohon lengkapi semua field dengan benar!', 'error');
+                return;
+            }
+
+            const jumlahHarga = volume * hargaSatuan;
+            const newItem = {
+                id: Date.now().toString(),
+                uraianPekerjaan,
+                satuan,
+                volume,
+                hargaSatuan,
+                jumlahHarga,
+                createdAt: new Date().toISOString()
+            };
+
+            rabItems.push(newItem);
+            saveLocalData();
+            updateTable();
+            updateSummary();
+            clearForm();
+            showNotification('Item berhasil ditambahkan!', 'success');
+        }
+
+        function editItem(id) {
+            const item = rabItems.find(item => item.id === id);
+            if (!item) return;
+
+            document.getElementById('uraianPekerjaan').value = item.uraianPekerjaan;
+            document.getElementById('satuan').value = item.satuan;
+            document.getElementById('volume').value = item.volume;
+            document.getElementById('hargaSatuan').value = item.hargaSatuan;
+
+            hapusItem(id);
+        }
+
+        function hapusItem(id) {
+            rabItems = rabItems.filter(item => item.id !== id);
+            saveLocalData();
+            updateTable();
+            updateSummary();
+            showNotification('Item berhasil dihapus!', 'info');
+        }
+
+        function clearAllData() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data?')) {
+                rabItems = [];
+                saveLocalData();
+                updateTable();
+                updateSummary();
+                showNotification('Semua data berhasil dihapus!', 'info');
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('uraianPekerjaan').value = '';
+            document.getElementById('satuan').value = '';
+            document.getElementById('volume').value = '';
+            document.getElementById('hargaSatuan').value = '';
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('rabTableBody');
+            
+            if (rabItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div>
+                                <div style="font-size: 3rem; margin-bottom: 15px;">📋</div>
+                                <h3>Belum ada item pekerjaan</h3>
+                                <p>Tambahkan item pekerjaan untuk mulai menghitung RAB</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = rabItems.map((item, index) => `
+                <tr>
+                    <td><strong>${index + 1}</strong></td>
+                    <td>${item.uraianPekerjaan}</td>
+                    <td><span style="background: #3498db; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${item.satuan}</span></td>
+                    <td>${formatNumber(item.volume)}</td>
+                    <td>${formatCurrency(item.hargaSatuan)}</td>
+                    <td><strong>${formatCurrency(item.jumlahHarga)}</strong></td>
+                    <td>
+                        <button class="btn btn-warning" onclick="editItem('${item.id}')" style="padding: 8px 12px; font-size: 12px;">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="hapusItem('${item.id}')" style="padding: 8px 12px; font-size: 12px;">🗑️ Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateSummary() {
+            const totalItems = rabItems.length;
+            const subtotal = rabItems.reduce((sum, item) => sum + item.jumlahHarga, 0);
+            const ppn = subtotal * 0.11;
+            const totalKeseluruhan = subtotal + ppn;
+
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('ppn').textContent = formatCurrency(ppn);
+            document.getElementById('totalKeseluruhan').textContent = formatCurrency(totalKeseluruhan);
+        }
+
+        async function syncToFirebase() {
+            if (!isFirebaseInitialized) {
+                showNotification('Firebase belum terhubung!', 'error');
+                return;
+            }
+
+            if (rabItems.length === 0) {
+                showNotification('Tidak ada data untuk disync!', 'error');
+                return;
+            }
+
+            try {
+                showNotification('Menyinkronkan data...', 'info');
+                
+                // Clear existing data first
+                const querySnapshot = await getDocs(collection(db, 'rab_items'));
+                const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+                await Promise.all(deletePromises);
+
+                // Add new data
+                const addPromises = rabItems.map(item => addDoc(collection(db, 'rab_items'), item));
+                await Promise.all(addPromises);
+
+                document.getElementById('lastSync').textContent = `Terakhir Sync: ${new Date().toLocaleString('id-ID')}`;
+                showNotification('Data berhasil disinkronkan ke Firebase!', 'success');
+            } catch (error) {
+                console.error('Error syncing to Firebase:', error);
+                showNotification('Gagal menyinkronkan data: ' + error.message, 'error');
+            }
+        }
+
+        async function loadFromFirebase() {
+            if (!isFirebaseInitialized) {
+                showNotification('Firebase belum terhubung!', 'error');
+                return;
+            }
+
+            try {
+                showNotification('Memuat data dari Firebase...', 'info');
+                
+                const querySnapshot = await getDocs(collection(db, 'rab_items'));
+                const firebaseItems = [];
+                
+                querySnapshot.forEach((doc) => {
+                    firebaseItems.push({ ...doc.data(), firebaseId: doc.id });
+                });
+
+                if (firebaseItems.length === 0) {
+                    showNotification('Tidak ada data di Firebase!', 'info');
+                    return;
+                }
+
+                rabItems = firebaseItems;
+                saveLocalData();
+                updateTable();
+                updateSummary();
+                
+                document.getElementById('lastSync').textContent = `Terakhir Load: ${new Date().toLocaleString('id-ID')}`;
+                showNotification(`Berhasil memuat ${firebaseItems.length} item dari Firebase!`, 'success');
+            } catch (error) {
+                console.error('Error loading from Firebase:', error);
+                showNotification('Gagal memuat data: ' + error.message, 'error');
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatNumber(number) {
+            return new Intl.NumberFormat('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(number);
+        }
+
+        function showNotification(message, type = 'info') {
+            // Remove existing notification
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
